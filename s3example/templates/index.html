@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Flask S3 Uploads</title>
+</head>
+<body style="height: 100vh; display: flex; justify-content: center; align-items:center; flex-direction: column">
+  <h3>Upload to S3</h3>
+  <h4>Extensions allowed: {{extensions}}</h4>
+  {% for cate, message in get_flashed_messages(with_categories=True) %}
+    <p style="color: {{cate}};">{{message}}</p>
+  {% endfor %}
+
+  <form action="" enctype="multipart/form-data" method="post" style="margin-bottom: 30px;">
+    <input type="file" name="file-to-save">
+    <button>Upload</button>
+  </form>
+
+  {% for file in files %}
+    <div>
+      {{ file.original_filename }}
+      -
+      <a href="https://{{file.bucket}}.s3.{{file.region}}.amazonaws.com/{{file.filename}}" target="_file">{{file.filename}}</a>
+    </div>
+  {% endfor %}
+  
+</body>
+</html>

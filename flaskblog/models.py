@@ -50,6 +50,8 @@ class User(db.Model, UserMixin):
     def __repr__(self):
         return f"User('{self.username}', '{self.email}', '{self.image_file}')"
 
+    def get_profile_picture_url(self):
+        return f"https://{current_app.config['AWS_BUCKET_NAME']}.s3.{current_app.config['AWS_DEFAULT_REGION']}.amazonaws.com/static/profile_pics/{self.image_file}"
 
 class Post(db.Model):
     id = db.Column(db.Integer, primary_key=True)

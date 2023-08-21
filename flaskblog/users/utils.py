@@ -1,22 +1,39 @@
 
-import os
+import os, boto3
 import secrets
+from io import BytesIO
 from PIL import Image
 from flask import url_for, current_app
 from flask_mail import Message
 from flaskblog import mail
 
-
-def save_picture(form_picture):
+def save_picture(form_picture, s3=False):
     random_hex = secrets.token_hex(8)
     _, f_ext = os.path.splitext(form_picture.filename)
     picture_fn = random_hex + f_ext
     picture_path = os.path.join(current_app.root_path, 'static/profile_pics', picture_fn)
 
+    formats = {
+        '.png': 'PNG',
+        '.jpg': 'JPEG',
+        '.jpeg': 'JPEG',
+    }
+
     output_size = (125, 125)
     i = Image.open(form_picture)
     i.thumbnail(output_size)
     i.save(picture_path)
+
+    if s3:
+        # s3 = boto3.resource('s3')
+        s3 = boto3.client('s3')
+        img_bytes = BytesIO()
+        i.save(img_bytes, format=formats[f_ext.lower()])
+        img_bytes = img_bytes.getvalue()
+        s3.upload_fileobj(BytesIO(img_bytes), current_app.config['AWS_BUCKET_NAME'], 'static/profile_pics/' + picture_fn)
+        # s3.Bucket(current_app.config['AWS_BUCKET_NAME']).put_object(Key=picture_fn, data=BytesIO(img_bytes))
+    else:
+        pass
 
     return picture_fn
 
