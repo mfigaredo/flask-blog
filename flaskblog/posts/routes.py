@@ -2,8 +2,8 @@ from flask import (render_template, url_for, flash,
                    redirect, request, abort, Blueprint)
 from flask_login import current_user, login_required
 from flaskblog import db
-from flaskblog.models import Post
-from flaskblog.posts.forms import PostForm
+from flaskblog.models import Post, Comment
+from flaskblog.posts.forms import PostForm, CommentForm
 
 posts = Blueprint('posts', __name__)
 
@@ -22,10 +22,19 @@ def new_post():
                            form=form, legend='New Post')
 
 
-@posts.route("/post/<int:post_id>")
+@posts.route("/post/<int:post_id>", methods=('GET', 'POST', ))
 def post(post_id):
     post = Post.query.get_or_404(post_id)
-    return render_template('post.html', title=post.title, post=post)
+    form = CommentForm()
+    if current_user.is_authenticated:
+        if form.validate_on_submit():
+            comment = Comment(comment=form.comment.data, post=post, author=current_user)
+            db.session.add(comment)
+            db.session.commit()
+            flash('Your comment has been added!', 'success')
+            return redirect(url_for('posts.post', post_id=post_id))
+    
+    return render_template('post.html', title=post.title, post=post, form=form)
 
 
 @posts.route("/post/<int:post_id>/update", methods=['GET', 'POST'])
